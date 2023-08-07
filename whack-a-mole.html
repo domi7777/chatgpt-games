@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Mole Whack-a-Mole Game</title>
+</head>
+<body>
+<canvas id="myCanvas" width="200" height="200"></canvas>
+
+<script>
+  // Get the canvas element and its context
+  const canvas = document.getElementById('myCanvas');
+  const ctx = canvas.getContext('2d');
+
+  // Game variables
+  let score = 0;
+  let timer = 0;
+  let moleX, moleY, moleRadius, moleVisible, clicked;
+
+  // Update the game state
+  function updateGame() {
+    // Clear the canvas
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    // Draw the background gradient
+    const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+    gradient.addColorStop(0, '#70a1ff'); // Light blue at the top
+    gradient.addColorStop(1, '#1e3799'); // Dark blue at the bottom
+    ctx.fillStyle = gradient;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // Draw the mole if it's visible
+    if (moleVisible) {
+      ctx.beginPath();
+      ctx.arc(moleX, moleY, moleRadius, 0, 2 * Math.PI); // Body (circle)
+      ctx.fillStyle = '#8B4513'; // Brown color
+      ctx.fill();
+
+      if (clicked) {
+        // Draw crossed eyes
+        ctx.moveTo(moleX - 8, moleY - 8);
+        ctx.lineTo(moleX - 2, moleY - 2);
+        ctx.moveTo(moleX - 8, moleY - 2);
+        ctx.lineTo(moleX - 2, moleY - 8);
+
+        ctx.moveTo(moleX + 2, moleY - 8);
+        ctx.lineTo(moleX + 8, moleY - 2);
+        ctx.moveTo(moleX + 2, moleY - 2);
+        ctx.lineTo(moleX + 8, moleY - 8);
+
+        ctx.strokeStyle = 'black';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+
+        // Draw the sad smile (upside down)
+        ctx.beginPath();
+        ctx.arc(moleX, moleY + 12, 8, 0.2 * Math.PI + Math.PI, 0.8 * Math.PI + Math.PI); // Sad smile
+        ctx.strokeStyle = 'black';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+      } else {
+        // Draw eyes
+        ctx.beginPath();
+        ctx.arc(moleX - 8, moleY - 5, 3, 0, 2 * Math.PI); // Left eye
+        ctx.fillStyle = 'black';
+        ctx.fill();
+
+        ctx.beginPath();
+        ctx.arc(moleX + 8, moleY - 5, 3, 0, 2 * Math.PI); // Right eye
+        ctx.fillStyle = 'black';
+        ctx.fill();
+
+        // Draw the smile (normal)
+        ctx.beginPath();
+        ctx.arc(moleX, moleY + 5, 8, 0.2 * Math.PI, 0.8 * Math.PI); // Smile
+        ctx.strokeStyle = 'black';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+      }
+    }
+
+    // Update the timer
+    if (timer > 0) {
+      timer--;
+    } else {
+      // Randomly decide if the mole should appear
+      if (Math.random() < 0.2) { // Decreased appearance frequency (change this value to control speed)
+        moleX = Math.random() * (canvas.width - 2 * moleRadius) + moleRadius;
+        moleY = Math.random() * (canvas.height - 2 * moleRadius) + moleRadius;
+        moleRadius = 20;
+        moleVisible = true;
+        clicked = false; // Reset clicked status
+        timer = 60; // Display the mole for 60 frames (approximately 2 seconds)
+      }
+    }
+
+    // Display the score
+    ctx.font = '16px Arial';
+    ctx.fillStyle = 'white';
+    ctx.fillText('Score: ' + score, 10, 20);
+
+    // Request the next animation frame
+    requestAnimationFrame(updateGame);
+  }
+
+  // Handle mouse click event
+  canvas.addEventListener('click', function(event) {
+    const rect = canvas.getBoundingClientRect();
+    const clickX = event.clientX - rect.left;
+    const clickY = event.clientY - rect.top;
+
+    // Check if the click is inside the mole
+    if (moleVisible && Math.sqrt((clickX - moleX) ** 2 + (clickY - moleY) ** 2) < moleRadius) {
+      score++;
+      clicked = true; // Mark the mole as clicked (sad face)
+    }
+  });
+
+  // Start the game loop
+  updateGame();
+</script>
+</body>
+</html>

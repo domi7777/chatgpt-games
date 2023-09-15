@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tomato Toss Game</title>
+  <style>
+      /* Add your game styles here */
+      body {
+          margin: 0;
+          overflow: hidden;
+      }
+
+      #game-canvas {
+          background-color: #87CEEB; /* Sky Blue */
+      }
+  </style>
+</head>
+<body>
+<canvas id="game-canvas"></canvas>
+<script>
+  const canvas = document.getElementById("game-canvas");
+  const ctx = canvas.getContext("2d");
+
+  // Define game variables
+  let tomatoes = [];
+  let pigs = [];
+
+  // Define interaction variables
+  let isDragging = false;
+  let selectedTomato = null;
+
+  // Create a tomato class
+  class Tomato {
+    constructor(x, y) {
+      this.x = x;
+      this.y = y;
+      this.radius = 20; // Adjust the size as needed
+      this.color = "red";
+    }
+
+    draw() {
+      ctx.beginPath();
+      ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+      ctx.fillStyle = this.color;
+      ctx.fill();
+      ctx.closePath();
+    }
+
+    // Check if the tomato has hit a pig
+    checkCollision(pig) {
+      const distance = Math.sqrt(
+        (this.x - pig.x) ** 2 + (this.y - pig.y) ** 2
+      );
+
+      return distance < this.radius + pig.width / 2;
+    }
+  }
+
+  // Create a pig class
+  class Pig {
+    constructor(x, y) {
+      this.x = x;
+      this.y = y;
+      this.width = 50;
+      this.height = 50;
+      this.image = new Image();
+      this.image.src = "https://upload.wikimedia.org/wikipedia/commons/thumb/5/56/Donald_Trump_official_portrait.jpg/1920px-Donald_Trump_official_portrait.jpg";
+    }
+
+    draw() {
+      ctx.drawImage(this.image, this.x, this.y, this.width, this.height);
+    }
+  }
+
+  // Function to create initial game elements
+  function createGameElements() {
+    // Create tomatoes
+    for (let i = 0; i < 5; i++) {
+      const x = Math.random() * canvas.width;
+      const y = canvas.height - 30;
+      const tomato = new Tomato(x, y);
+      tomatoes.push(tomato);
+    }
+
+    // Create pigs (Donald Trump)
+    for (let i = 0; i < 3; i++) {
+      const x = 100 + i * 200;
+      const y = canvas.height - 100;
+      const pig = new Pig(x, y);
+      pigs.push(pig);
+    }
+  }
+
+  // Function to draw game elements
+  function draw() {
+    // Clear the canvas
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    // Draw tomatoes
+    tomatoes.forEach((tomato) => {
+      tomato.draw();
+    });
+
+    // Draw pigs (Donald Trump)
+    pigs.forEach((pig) => {
+      pig.draw();
+    });
+
+    // Handle interactions
+    if (isDragging && selectedTomato) {
+      selectedTomato.x = mouseX;
+      selectedTomato.y = mouseY;
+      selectedTomato.draw();
+    }
+
+    // Check for collisions between tomatoes and pigs
+    for (let i = 0; i < tomatoes.length; i++) {
+      for (let j = 0; j < pigs.length; j++) {
+        if (tomatoes[i].checkCollision(pigs[j])) {
+          // Tomato hit a pig, remove both
+          tomatoes.splice(i, 1);
+          pigs.splice(j, 1);
+          i--; // Decrement i to account for the removed tomato
+          break; // Exit the inner loop
+        }
+      }
+    }
+  }
+
+  // Function to handle mouse events
+  function handleMouseEvents() {
+    canvas.addEventListener("mousedown", (e) => {
+      isDragging = true;
+
+      // Find the selected tomato (if any)
+      for (const tomato of tomatoes) {
+        const distance = Math.sqrt(
+          (e.clientX - tomato.x) ** 2 + (e.clientY - tomato.y) ** 2
+        );
+        if (distance <= tomato.radius) {
+          selectedTomato = tomato;
+          break; // Exit the loop once a tomato is selected
+        }
+      }
+    });
+
+    canvas.addEventListener("mousemove", (e) => {
+      mouseX = e.clientX;
+      mouseY = e.clientY;
+    });
+
+    canvas.addEventListener("mouseup", () => {
+      isDragging = false;
+      selectedTomato = null;
+    });
+  }
+
+  // Initialize the game
+  function init() {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+
+    createGameElements();
+    handleMouseEvents();
+    setInterval(draw, 10); // Redraw the canvas every 10 milliseconds
+  }
+
+  // Start the game
+  window.addEventListener("load", init);
+</script>
+</body>
+</html>
